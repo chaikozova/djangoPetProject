@@ -24,5 +24,8 @@ urlpatterns = [
     path('api/v1/news/', news.NewsAPIView.as_view()),
     path('api/v1/news/<int:id>/', news.NewsDetailView.as_view()),
     path('api/v1/register/', user.RegisterApiView.as_view()),
+    path('api/v1/confirm/', user.ConfirmApiView.as_view()),
+    path('api/v1/login/', user.LoginApiView.as_view()),
+    path('api/v1/favorites/', news.FavoriteCreateListDestroyApiView.as_view()),
 
 ]

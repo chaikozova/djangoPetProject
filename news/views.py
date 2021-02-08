@@ -4,12 +4,14 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework import status, mixins
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
-from news.models import News
-from news.serializers import NewsSerializer, NewsCreateSerializer
+from news.models import News, FavoriteNews
+from news.permissions import IsClient
+from news.serializers import NewsSerializer, NewsCreateSerializer, FavoriteNewsSerializer
 
 
 class NewsAPIView(APIView, PageNumberPagination):
@@ -18,8 +20,8 @@ class NewsAPIView(APIView, PageNumberPagination):
 
     def get(self, request, *args, **kwargs):
         query = request.query_params.get('query', '')
-        news = News.objects.filter(Q(title_contains=query),
-                                   Q(description_contains=query))
+        news = News.objects.filter(Q(title__exact=query) |
+                                   Q(description__contains=query))
         result = self.paginate_queryset(news, request, view=self)
         return self.get_paginated_response(self.serializer_class(result, many=True).data)
 
@@ -55,3 +57,31 @@ class NewsDetailView(APIView):
         news.delete()
         news = News.objects.all()
         return Response(data=self.serializer_class(news, many=True).data)
+
+
+class FavoriteCreateListDestroyApiView(APIView):
+    permission_classes = [IsClient]
+
+    def post(self, request):
+        news_id = int(request.data.get('news_id'))
+        try:
+            favorite = FavoriteNews.objects.get(news_id=news_id,
+                                                   user=request.user)
+        except:
+            favorite = FavoriteNews.objects.create(news_id=news_id,
+                                                   user=request.user)
+            favorite.save()
+        return Response(status=status.HTTP_200_OK,
+                        data=FavoriteNewsSerializer(favorite).data)
+
+    def get(self, request):
+        favorites = FavoriteNews.objects.filter(user=request.user)
+        return Response(data=FavoriteNewsSerializer(favorites, many=True).data,
+                        status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        news_id = int(request.data.get('news_id'))
+        favorites = FavoriteNews.objects.filter(news_id=news_id,
+                                                user=request.user)
+        favorites.delete()
+        return Response(status=status.HTTP_200_OK)
