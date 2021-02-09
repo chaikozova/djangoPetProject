@@ -24,14 +24,13 @@ class LawsApiView(APIView, PageNumberPagination):
         return self.get_paginated_response(self.serializer_class(results, many=True).data)
 
     def post(self, request, *args, **kwargs):
-        serializer = LawsCreateSerializer
-        if serializer.is_valid():
-            law = Laws.objects.create(title=serializer.title,
-                                      description=serializer.description)
-            law.save()
-            return Response(status=status.HTTP_201_CREATED)
-        else:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+        title = request.data.get('title')
+        description = request.data.get('description')
+        law = Laws.objects.create(title=title,
+                                  description=description)
+        law.save()
+        return Response(data=self.serializer_class(law).data,
+                        status=status.HTTP_201_CREATED)
 
 
 class LawsDetailView(APIView):

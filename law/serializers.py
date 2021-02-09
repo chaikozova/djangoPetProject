@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from law.models import Laws
+from law.models import Laws, FavoriteLaws
 from users.serializers import UserSerializer
 
 
@@ -18,3 +18,7 @@ class LawsCreateSerializer(serializers.ModelSerializer):
 class FavoriteLawsSerializer(serializers.ModelSerializer):
     user = UserSerializer
     laws = LawsSerializer
+
+    class Meta:
+        model = FavoriteLaws
+        fields = 'id user law'.split()

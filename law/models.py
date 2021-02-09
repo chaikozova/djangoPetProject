@@ -5,6 +5,8 @@ from users.models import User
 
 
 class Laws(models.Model):
+    class Meta:
+        verbose_name = 'Законы'
     title = models.CharField(max_length=100)
     description = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
@@ -17,3 +19,4 @@ class Laws(models.Model):
 class FavoriteLaws(models.Model):
     news = models.ForeignKey(Laws, on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
