@@ -23,14 +23,13 @@ class PublicationsApiView(APIView, PageNumberPagination):
         return self.get_paginated_response(self.serializer_class(results, many=True).data)
 
     def post(self, request, *args, **kwargs):
-        serializer = PublicationCreateSerializer
-        if serializer.is_valid():
-            publication = Publications.objects.create(title=serializer.title,
-                                                      description=serializer.description)
-            publication.save()
-            return Response(status=status.HTTP_201_CREATED)
-        else:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+        titel = request.data.get('titel')
+        description = request.data.get('description')
+        publication = Publications.objects.create(title=titel,
+                                                  description=description)
+        publication.save()
+        return Response(data=self.serializer_class(publication).data,
+                        status=status.HTTP_201_CREATED)
 
 
 class PublicationsDetailView(APIView):
@@ -71,12 +70,12 @@ class FavoritePublicationCreateAndDestroyApiView(APIView):
         return Response(status=status.HTTP_200_OK,
                         data=FavoritePublicationSerializer(favorite).data)
 
-    def get(self,request):
+    def get(self, request):
         favorites = FavoritePublications.objects.filter(user=request.user)
         return Response(status=status.HTTP_200_OK,
                         data=FavoritePublicationSerializer(favorites, many=True).data)
 
-    def delete(self,request):
+    def delete(self, request):
         publications_id = int(request.data.get('publications_id'))
         favorites = FavoritePublications.objects.filter(publications_id=publications_id,
                                                         user=request.users)
